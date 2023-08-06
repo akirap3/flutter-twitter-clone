@@ -72,6 +72,11 @@ class UserNotifier extends StateNotifier<LocalUser> {
     );
   }
 
+  Future<void> updateName(String name) async {
+    await _firestore.collection('users').doc(state.id).update({'name': name});
+    state = state.copyWith(user: state.user.copyWith(name: name));
+  }
+
   void logout() {
     state = const LocalUser(
       id: "error",
