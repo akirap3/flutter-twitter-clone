@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_twitter_clone/pages/signup.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -12,6 +13,7 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final GlobalKey<FormState> _signInKey = GlobalKey();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -90,10 +92,20 @@ class _SignInState extends State<SignIn> {
                     color: Colors.blue,
                     borderRadius: BorderRadius.circular(30)),
                 child: TextButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_signInKey.currentState!.validate()) {
-                        debugPrint("Email: ${_emailController.text}");
-                        debugPrint("Password: ${_passwordController.text}");
+                        try {
+                          await _auth.signInWithEmailAndPassword(
+                            email: _emailController.text,
+                            password: _passwordController.text,
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(e.toString()),
+                            ),
+                          );
+                        }
                       }
                     },
                     child: const Text(
