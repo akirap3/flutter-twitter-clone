@@ -24,7 +24,14 @@ class Home extends ConsumerWidget {
         ],
       ),
         body: Column(
-          children: [Text(ref.watch(userProvider).user.email)],
+          children: [
+            Text(ref.watch(userProvider).user.email),
+            Text(ref.watch(userProvider).user.name),
+            CircleAvatar(
+              backgroundImage:
+                  NetworkImage(ref.watch(userProvider).user.profilePic),
+            )
+          ],
         )
     );
   }

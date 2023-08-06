@@ -27,7 +27,11 @@ class UserNotifier extends StateNotifier<LocalUser> {
   UserNotifier()
       : super(const LocalUser(
           id: "error",
-          user: FirebaseUser(email: "error"),
+          user: FirebaseUser(
+            email: "error",
+            name: "error",
+            profilePic: "error",
+          ),
         ));
 
   Future<void> login(String email) async {
@@ -43,7 +47,11 @@ class UserNotifier extends StateNotifier<LocalUser> {
       print("More than one firestore user associate with email: $email");
     }
     state =
-        LocalUser(id: response.docs[0].id, user: FirebaseUser(email: email));
+        LocalUser(
+      id: response.docs[0].id,
+      user:
+          FirebaseUser.fromMap(response.docs[0].data() as Map<String, dynamic>),
+    );
   }
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -52,15 +60,26 @@ class UserNotifier extends StateNotifier<LocalUser> {
     DocumentReference response = await _firestore.collection("users").add(
           FirebaseUser(
             email: email,
+            name: "No name",
+            profilePic:
+                "https://static.vecteezy.com/system/resources/previews/002/002/403/original/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
           ).toMap(),
         );
-    state = LocalUser(id: response.id, user: FirebaseUser(email: email));
+    DocumentSnapshot snapshot = await response.get();
+    state = LocalUser(
+      id: response.id,
+      user: FirebaseUser.fromMap(snapshot.data() as Map<String, dynamic>),
+    );
   }
 
   void logout() {
     state = const LocalUser(
       id: "error",
-      user: FirebaseUser(email: "error"),
+      user: FirebaseUser(
+        email: "error",
+        name: "error",
+        profilePic: "error",
+      ),
     );
   }
 }
