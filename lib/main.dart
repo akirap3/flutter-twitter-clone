@@ -31,6 +31,18 @@ class MyApp extends ConsumerWidget {
           return const SignIn(title: "Home Page");
         },
       ),
+      theme: ThemeData(
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          titleTextStyle: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+          centerTitle: true,
+        ),
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
