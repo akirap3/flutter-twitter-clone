@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_twitter_clone/modal/user.dart';
 
@@ -55,6 +58,7 @@ class UserNotifier extends StateNotifier<LocalUser> {
   }
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   Future<void> signUp(String email) async {
     DocumentReference response = await _firestore.collection("users").add(
@@ -75,6 +79,19 @@ class UserNotifier extends StateNotifier<LocalUser> {
   Future<void> updateName(String name) async {
     await _firestore.collection('users').doc(state.id).update({'name': name});
     state = state.copyWith(user: state.user.copyWith(name: name));
+  }
+
+  Future<void> updateImage(File image) async {
+    Reference ref = _storage.ref().child("users").child(state.id);
+    TaskSnapshot snapshot = await ref.putFile(image);
+    String profilePicUrl = await snapshot.ref.getDownloadURL();
+
+    await _firestore
+        .collection('users')
+        .doc(state.id)
+        .update({'profilePic': profilePicUrl});
+    state =
+        state.copyWith(user: state.user.copyWith(profilePic: profilePicUrl));
   }
 
   void logout() {
