@@ -5,40 +5,66 @@ import 'package:flutter_twitter_clone/pages/create.dart';
 import 'package:flutter_twitter_clone/pages/settings.dart';
 import 'package:flutter_twitter_clone/provider/tweet_provider.dart';
 import 'package:flutter_twitter_clone/provider/user_provider.dart';
+import 'package:rive/rive.dart';
 
 import '../modal/tweet.dart';
 
-class Home extends ConsumerWidget {
+class Home extends ConsumerStatefulWidget {
   const Home({super.key});
+  @override
+  ConsumerState<Home> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends ConsumerState<Home> {
+  bool clicked = false;
+  SMIInput<bool>? _pressed;
+
+  void _onRiveInit(Artboard artboard) {
+    final controller = StateMachineController.fromArtboard(artboard, 'Button');
+    artboard.addController(controller!);
+    _pressed = controller.findInput("Press");
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     LocalUser currentUser = ref.watch(userProvider);
     return Scaffold(
       appBar: AppBar(
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4.0),
-          child: Container(
-            color: Colors.grey,
-            height: 1,
-          ),
-        ),
-        title: const Image(
-          image: AssetImage('assets/twitter_blue.png'),
-          width: 50,
-        ),
-        leading: Builder(builder: (context) {
-          return GestureDetector(
-            onTap: () => Scaffold.of(context).openDrawer(),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: CircleAvatar(
-                backgroundImage: NetworkImage(currentUser.user.profilePic),
-              ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: Colors.grey,
+              height: 1,
             ),
-          );
-        }),
-      ),
+          ),
+          title: const Image(
+            image: AssetImage('assets/twitter_blue.png'),
+            width: 50,
+          ),
+          leading: Builder(builder: (context) {
+            return GestureDetector(
+              onTap: () => Scaffold.of(context).openDrawer(),
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(currentUser.user.profilePic),
+                ),
+              ),
+            );
+          }),
+          actions: [
+            AnimatedOpacity(
+              opacity: clicked ? 1 : 0,
+              duration: const Duration(seconds: 1),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 5),
+                child: CircleAvatar(
+                  radius: 60,
+                  child: Image.asset("assets/mars.png"),
+                ),
+              ),
+            )
+          ]),
       body: ref.watch(feedProvider).when(
           data: (List<Tweet> tweets) {
             return ListView.separated(
@@ -98,13 +124,43 @@ class Home extends ConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const CreateTweet()),
-          );
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: AnimatedContainer(
+        padding: const EdgeInsets.only(top: 90),
+        alignment: clicked ? Alignment.topRight : Alignment.bottomRight,
+        duration: const Duration(seconds: 1),
+        child: SizedBox(
+          width: 100,
+          height: 100,
+          child: GestureDetector(
+            onTapDown: (_) {
+              setState(() {
+                clicked = true;
+              });
+              _pressed?.value = true;
+              Future.delayed(
+                const Duration(seconds: 2),
+                () {
+                  setState(() {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const CreateTweet(),
+                      ),
+                    );
+                    setState(() {
+                      clicked = false;
+                    });
+                  });
+                },
+              );
+            },
+            onTapCancel: () => _pressed?.value = false,
+            onTapUp: (_) => _pressed?.value = false,
+            child: RiveAnimation.asset(
+              'assets/rocket.riv',
+              onInit: _onRiveInit,
+            ),
+          ),
+        ),
       ),
     );
   }
